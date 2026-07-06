@@ -1,0 +1,43 @@
+{
+  "id": "fizzbuzz",
+  "title": "FizzBuzz list",
+  "description": "Write a function fizzbuzz(n) that returns a list of strings for 1..n: multiples of 3 become 'Fizz', multiples of 5 become 'Buzz', multiples of both become 'FizzBuzz', everything else the number as a string.",
+  "function_name": "fizzbuzz",
+  "signature": "def fizzbuzz(n: int) -> list[str]:",
+  "constraints": [
+    "Multiples of both 3 and 5 must be 'FizzBuzz', never 'Fizz' or 'Buzz'.",
+    "Return an empty list for n <= 0."
+  ],
+  "edge_cases": [
+    "n = 15 (first FizzBuzz)",
+    "n = 0",
+    "n = 1"
+  ],
+  "tests": [
+    "assert fizzbuzz(3) == ['1', '2', 'Fizz']",
+    "assert fizzbuzz(5)[-1] == 'Buzz'",
+    "assert fizzbuzz(15)[-1] == 'FizzBuzz'"
+  ],
+  "edge_tests": [
+    "assert fizzbuzz(0) == []",
+    "assert fizzbuzz(1) == ['1']",
+    "assert fizzbuzz(30)[29] == 'FizzBuzz'"
+  ],
+  "perf_test": null,
+  "properties": [
+    "def property_check(fn, rng):",
+    "    for _ in range(50):",
+    "        n = rng.randint(0, 200)",
+    "        out = fn(n)",
+    "        assert len(out) == max(n, 0)",
+    "        for i, v in enumerate(out, start=1):",
+    "            if i % 15 == 0:",
+    "                assert v == 'FizzBuzz'",
+    "            elif i % 3 == 0:",
+    "                assert v == 'Fizz'",
+    "            elif i % 5 == 0:",
+    "                assert v == 'Buzz'",
+    "            else:",
+    "                assert v == str(i)"
+  ]
+}

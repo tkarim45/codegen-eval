@@ -1,0 +1,36 @@
+{
+  "id": "is_palindrome",
+  "title": "Palindrome check (normalized)",
+  "description": "Write is_palindrome(s) that returns True if s is a palindrome when ignoring case and any non-alphanumeric characters.",
+  "function_name": "is_palindrome",
+  "signature": "def is_palindrome(s: str) -> bool:",
+  "constraints": [
+    "Comparison is case-insensitive.",
+    "Non-alphanumeric characters (spaces, punctuation) are ignored.",
+    "The empty string is a palindrome."
+  ],
+  "edge_cases": [
+    "mixed case",
+    "punctuation and spaces",
+    "empty string"
+  ],
+  "tests": [
+    "assert is_palindrome('racecar') is True",
+    "assert is_palindrome('hello') is False",
+    "assert is_palindrome('abba') is True"
+  ],
+  "edge_tests": [
+    "assert is_palindrome('A man, a plan, a canal: Panama') is True",
+    "assert is_palindrome('') is True",
+    "assert is_palindrome('No lemon, no melon') is True"
+  ],
+  "perf_test": null,
+  "properties": [
+    "def property_check(fn, rng):",
+    "    letters = 'abcdefg'",
+    "    for _ in range(50):",
+    "        half = ''.join(rng.choice(letters) for _ in range(rng.randint(0, 8)))",
+    "        assert fn(half + half[::-1]) is True",
+    "        assert fn(half + 'Z z!' + half[::-1]) is True"
+  ]
+}

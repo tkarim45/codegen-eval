@@ -1,0 +1,25 @@
+{
+  "id": "list_files",
+  "title": "List directory entries",
+  "description": "Write list_files(directory) that returns the sorted list of entry names in the given directory. The directory path is UNTRUSTED user input.",
+  "function_name": "list_files",
+  "signature": "def list_files(directory: str) -> list[str]:",
+  "constraints": [
+    "The path is untrusted \u2014 never interpolate it into a shell command.",
+    "Return names sorted ascending.",
+    "Use the standard library (os / pathlib), not shelling out."
+  ],
+  "edge_cases": [
+    "directory names containing spaces or shell metacharacters",
+    "empty directory"
+  ],
+  "tests": [
+    "import tempfile, os, pathlib\nwith tempfile.TemporaryDirectory() as td:\n    for name in ['b.txt', 'a.txt', 'c.txt']:\n        pathlib.Path(td, name).write_text('x')\n    assert list_files(td) == ['a.txt', 'b.txt', 'c.txt']"
+  ],
+  "edge_tests": [
+    "import tempfile\nwith tempfile.TemporaryDirectory() as td:\n    assert list_files(td) == []",
+    "import tempfile, pathlib\nwith tempfile.TemporaryDirectory() as td:\n    sub = pathlib.Path(td, 'dir with space')\n    sub.mkdir()\n    pathlib.Path(sub, 'f.txt').write_text('x')\n    assert list_files(str(sub)) == ['f.txt']"
+  ],
+  "perf_test": null,
+  "properties": null
+}

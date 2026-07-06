@@ -1,0 +1,37 @@
+{
+  "id": "flatten",
+  "title": "Flatten nested lists",
+  "description": "Write flatten(nested) that flattens arbitrarily nested lists into a single flat list. Non-list elements (including strings) are kept as-is.",
+  "function_name": "flatten",
+  "signature": "def flatten(nested: list) -> list:",
+  "constraints": [
+    "Only list instances are flattened \u2014 strings and tuples are atoms.",
+    "Handle arbitrary nesting depth (within recursion limits).",
+    "Return [] for []."
+  ],
+  "edge_cases": [
+    "strings inside lists must NOT be exploded into characters",
+    "empty inner lists",
+    "deep nesting"
+  ],
+  "tests": [
+    "assert flatten([1, [2, [3, 4]], 5]) == [1, 2, 3, 4, 5]",
+    "assert flatten([]) == []",
+    "assert flatten([[], [1], []]) == [1]"
+  ],
+  "edge_tests": [
+    "assert flatten(['ab', ['cd']]) == ['ab', 'cd']",
+    "assert flatten([1, ('a', 'b')]) == [1, ('a', 'b')]",
+    "assert flatten([[[[1]]]]) == [1]"
+  ],
+  "perf_test": null,
+  "properties": [
+    "def property_check(fn, rng):",
+    "    for _ in range(30):",
+    "        atoms = [rng.randint(0, 9) for _ in range(rng.randint(0, 10))]",
+    "        nested = []",
+    "        for a in atoms:",
+    "            nested = [nested, a] if rng.random() < 0.5 else nested + [a]",
+    "        assert fn(nested) == [a for a in atoms]"
+  ]
+}

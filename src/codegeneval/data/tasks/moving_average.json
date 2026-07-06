@@ -1,0 +1,35 @@
+{
+  "id": "moving_average",
+  "title": "Moving average",
+  "description": "Write moving_average(values, window) that returns the list of averages of every contiguous window of the given size, left to right.",
+  "function_name": "moving_average",
+  "signature": "def moving_average(values: list[float], window: int) -> list[float]:",
+  "constraints": [
+    "Output length is len(values) - window + 1 (or [] if window > len(values)).",
+    "Raise ValueError if window <= 0."
+  ],
+  "edge_cases": [
+    "window equal to len(values)",
+    "window larger than len(values)",
+    "window = 0"
+  ],
+  "tests": [
+    "assert moving_average([1, 2, 3, 4], 2) == [1.5, 2.5, 3.5]",
+    "assert moving_average([2, 2, 2], 3) == [2.0]"
+  ],
+  "edge_tests": [
+    "assert moving_average([1, 2], 5) == []",
+    "try:\n    moving_average([1, 2], 0)\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError('window=0 must raise ValueError')",
+    "assert moving_average([4], 1) == [4.0]"
+  ],
+  "perf_test": null,
+  "properties": [
+    "def property_check(fn, rng):",
+    "    for _ in range(30):",
+    "        vals = [rng.uniform(-10, 10) for _ in range(rng.randint(1, 20))]",
+    "        w = rng.randint(1, len(vals))",
+    "        out = fn(vals, w)",
+    "        assert len(out) == len(vals) - w + 1",
+    "        assert abs(out[0] - sum(vals[:w]) / w) < 1e-9"
+  ]
+}

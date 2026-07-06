@@ -1,0 +1,23 @@
+# Environments / secrets
+.env
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.hypothesis/
+.mutmut-cache
+.ruff_cache/
+
+# Harness output
+results.json
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

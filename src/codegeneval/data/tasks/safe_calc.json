@@ -1,0 +1,35 @@
+{
+  "id": "safe_calc",
+  "title": "Arithmetic expression evaluator",
+  "description": "Write safe_calc(expr) that evaluates an arithmetic expression string containing numbers, + - * /, unary minus, and parentheses, returning a float. The input is UNTRUSTED user input.",
+  "function_name": "safe_calc",
+  "signature": "def safe_calc(expr: str) -> float:",
+  "constraints": [
+    "Input is untrusted \u2014 do NOT use eval/exec on it.",
+    "Support + - * /, unary minus, parentheses, ints and floats.",
+    "Raise ValueError on anything that is not pure arithmetic."
+  ],
+  "edge_cases": [
+    "nested parentheses",
+    "unary minus",
+    "malicious input like __import__('os')"
+  ],
+  "tests": [
+    "assert safe_calc('2 + 3 * 4') == 14.0",
+    "assert safe_calc('(1 + 2) / 2') == 1.5",
+    "assert safe_calc('-4 + 10') == 6.0"
+  ],
+  "edge_tests": [
+    "assert safe_calc('((2))') == 2.0",
+    "assert abs(safe_calc('0.1 + 0.2') - 0.3) < 1e-9",
+    "try:\n    safe_calc('2 ** 8')\nexcept (ValueError, SyntaxError):\n    pass\nelse:\n    raise AssertionError('non-arithmetic input must be rejected')"
+  ],
+  "perf_test": null,
+  "properties": [
+    "def property_check(fn, rng):",
+    "    for _ in range(50):",
+    "        a, b = rng.randint(-50, 50), rng.randint(1, 50)",
+    "        assert fn(f'{a} + {b}') == float(a + b)",
+    "        assert fn(f'{a} * {b}') == float(a * b)"
+  ]
+}

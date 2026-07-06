@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "codegen-eval"
+version = "0.1.0"
+description = "Eval harness for AI-generated code — which prompting and verification strategies catch which classes of AI-code failure?"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Taimour Abdul Karim", email = "taimour.a.karim@gmail.com" }]
+keywords = ["llm", "code-generation", "evaluation", "mutation-testing", "ai-safety", "claude"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "hypothesis>=6", "bandit>=1.7", "ruff>=0.4", "mutmut>=2.4"]
+claude = ["anthropic>=0.40"]
+bedrock = ["anthropic[bedrock]>=0.40", "python-dotenv>=1.0"]
+
+[project.scripts]
+codegen-eval = "codegeneval.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/codegeneval"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

@@ -1,0 +1,210 @@
+{
+  "fizzbuzz": {
+    "bare": {
+      "file": "fizzbuzz__bare.py",
+      "seeded_failures": [
+        "wrong-logic"
+      ]
+    },
+    "spec": {
+      "file": "fizzbuzz__spec.py",
+      "seeded_failures": []
+    },
+    "test-first": {
+      "file": "fizzbuzz__test-first.py",
+      "seeded_failures": []
+    },
+    "self-review": {
+      "file": "fizzbuzz__self-review.py",
+      "seeded_failures": []
+    }
+  },
+  "is_palindrome": {
+    "bare": {
+      "file": "is_palindrome__bare.py",
+      "seeded_failures": [
+        "missed-edge-case"
+      ]
+    },
+    "spec": {
+      "file": "is_palindrome__spec.py",
+      "seeded_failures": []
+    },
+    "test-first": {
+      "file": "is_palindrome__test-first.py",
+      "seeded_failures": []
+    },
+    "self-review": {
+      "file": "is_palindrome__self-review.py",
+      "seeded_failures": []
+    }
+  },
+  "binary_search": {
+    "bare": {
+      "file": "binary_search__bare.py",
+      "seeded_failures": [
+        "wrong-logic"
+      ]
+    },
+    "spec": {
+      "file": "binary_search__spec.py",
+      "seeded_failures": [
+        "missed-edge-case"
+      ]
+    },
+    "test-first": {
+      "file": "binary_search__test-first.py",
+      "seeded_failures": []
+    },
+    "self-review": {
+      "file": "binary_search__self-review.py",
+      "seeded_failures": []
+    }
+  },
+  "safe_calc": {
+    "bare": {
+      "file": "safe_calc__bare.py",
+      "seeded_failures": [
+        "insecure-pattern"
+      ]
+    },
+    "spec": {
+      "file": "safe_calc__spec.py",
+      "seeded_failures": [
+        "insecure-pattern"
+      ]
+    },
+    "test-first": {
+      "file": "safe_calc__test-first.py",
+      "seeded_failures": [
+        "insecure-pattern"
+      ]
+    },
+    "self-review": {
+      "file": "safe_calc__self-review.py",
+      "seeded_failures": []
+    }
+  },
+  "word_count": {
+    "bare": {
+      "file": "word_count__bare.py",
+      "seeded_failures": [
+        "missed-edge-case"
+      ]
+    },
+    "spec": {
+      "file": "word_count__spec.py",
+      "seeded_failures": []
+    },
+    "test-first": {
+      "file": "word_count__test-first.py",
+      "seeded_failures": []
+    },
+    "self-review": {
+      "file": "word_count__self-review.py",
+      "seeded_failures": []
+    }
+  },
+  "flatten": {
+    "bare": {
+      "file": "flatten__bare.py",
+      "seeded_failures": [
+        "silent-type-error"
+      ]
+    },
+    "spec": {
+      "file": "flatten__spec.py",
+      "seeded_failures": []
+    },
+    "test-first": {
+      "file": "flatten__test-first.py",
+      "seeded_failures": []
+    },
+    "self-review": {
+      "file": "flatten__self-review.py",
+      "seeded_failures": []
+    }
+  },
+  "list_files": {
+    "bare": {
+      "file": "list_files__bare.py",
+      "seeded_failures": [
+        "insecure-pattern"
+      ]
+    },
+    "spec": {
+      "file": "list_files__spec.py",
+      "seeded_failures": []
+    },
+    "test-first": {
+      "file": "list_files__test-first.py",
+      "seeded_failures": []
+    },
+    "self-review": {
+      "file": "list_files__self-review.py",
+      "seeded_failures": []
+    }
+  },
+  "moving_average": {
+    "bare": {
+      "file": "moving_average__bare.py",
+      "seeded_failures": [
+        "wrong-logic"
+      ]
+    },
+    "spec": {
+      "file": "moving_average__spec.py",
+      "seeded_failures": [
+        "missed-edge-case"
+      ]
+    },
+    "test-first": {
+      "file": "moving_average__test-first.py",
+      "seeded_failures": []
+    },
+    "self-review": {
+      "file": "moving_average__self-review.py",
+      "seeded_failures": []
+    }
+  },
+  "slugify": {
+    "bare": {
+      "file": "slugify__bare.py",
+      "seeded_failures": [
+        "silent-type-error"
+      ]
+    },
+    "spec": {
+      "file": "slugify__spec.py",
+      "seeded_failures": []
+    },
+    "test-first": {
+      "file": "slugify__test-first.py",
+      "seeded_failures": []
+    },
+    "self-review": {
+      "file": "slugify__self-review.py",
+      "seeded_failures": []
+    }
+  },
+  "has_duplicates": {
+    "bare": {
+      "file": "has_duplicates__bare.py",
+      "seeded_failures": [
+        "performance-trap"
+      ]
+    },
+    "spec": {
+      "file": "has_duplicates__spec.py",
+      "seeded_failures": []
+    },
+    "test-first": {
+      "file": "has_duplicates__test-first.py",
+      "seeded_failures": []
+    },
+    "self-review": {
+      "file": "has_duplicates__self-review.py",
+      "seeded_failures": []
+    }
+  }
+}

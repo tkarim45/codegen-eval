@@ -1,0 +1,39 @@
+{
+  "id": "has_duplicates",
+  "title": "Duplicate detection at scale",
+  "description": "Write has_duplicates(items) that returns True if the list contains any repeated (hashable) element. It must stay fast on large inputs (tens of thousands of elements).",
+  "function_name": "has_duplicates",
+  "signature": "def has_duplicates(items: list) -> bool:",
+  "constraints": [
+    "Elements are hashable.",
+    "Must run in roughly O(n) \u2014 it will be called on lists of 50k+ items.",
+    "Return False for [] and single-element lists."
+  ],
+  "edge_cases": [
+    "large duplicate-free list (worst case)",
+    "empty list",
+    "duplicate at the very end"
+  ],
+  "tests": [
+    "assert has_duplicates([1, 2, 3, 2]) is True",
+    "assert has_duplicates([1, 2, 3]) is False",
+    "assert has_duplicates(['a', 'b', 'a']) is True"
+  ],
+  "edge_tests": [
+    "assert has_duplicates([]) is False",
+    "assert has_duplicates([7]) is False",
+    "assert has_duplicates(list(range(100)) + [0]) is True"
+  ],
+  "perf_test": {
+    "code": "assert has_duplicates(list(range(60000))) is False\nassert has_duplicates(list(range(60000)) + [0]) is True",
+    "timeout_s": 3.0
+  },
+  "properties": [
+    "def property_check(fn, rng):",
+    "    for _ in range(30):",
+    "        base = rng.sample(range(10000), rng.randint(0, 50))",
+    "        assert fn(base) is False",
+    "        if base:",
+    "            assert fn(base + [rng.choice(base)]) is True"
+  ]
+}

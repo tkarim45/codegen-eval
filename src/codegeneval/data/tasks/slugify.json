@@ -1,0 +1,39 @@
+{
+  "id": "slugify",
+  "title": "URL slug generator",
+  "description": "Write slugify(text) that converts text to a URL slug: lowercase, alphanumerics kept, runs of spaces/hyphens/underscores collapsed to single hyphens, other characters dropped, no leading/trailing hyphen. Always return a string.",
+  "function_name": "slugify",
+  "signature": "def slugify(text: str) -> str:",
+  "constraints": [
+    "ALWAYS return a str \u2014 never None.",
+    "Symbol-only or empty input returns ''.",
+    "No leading or trailing hyphens; no double hyphens."
+  ],
+  "edge_cases": [
+    "input that is only punctuation",
+    "empty string",
+    "trailing separators"
+  ],
+  "tests": [
+    "assert slugify('Hello World') == 'hello-world'",
+    "assert slugify('  My Blog_Post  ') == 'my-blog-post'",
+    "assert slugify('a-b') == 'a-b'"
+  ],
+  "edge_tests": [
+    "assert slugify('!!!') == ''",
+    "assert slugify('') == ''",
+    "assert isinstance(slugify('???'), str)",
+    "assert slugify('word-') == 'word'"
+  ],
+  "perf_test": null,
+  "properties": [
+    "def property_check(fn, rng):",
+    "    chars = 'ab c-_!.'",
+    "    for _ in range(50):",
+    "        s = ''.join(rng.choice(chars) for _ in range(rng.randint(0, 15)))",
+    "        out = fn(s)",
+    "        assert isinstance(out, str)",
+    "        assert '--' not in out",
+    "        assert not out.startswith('-') and not out.endswith('-')"
+  ]
+}
