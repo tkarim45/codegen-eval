@@ -76,37 +76,107 @@ codegen-eval run --mode claude
 
 ## Results
 
-> **TBD — benchmark not yet run.** This is a scaffold: the harness, tasks, mock corpus and
-> scoring are in place and tested; the tables below will be filled from real runs and
-> committed `results.json` files. Numbers are never hand-written here.
+> **Mock mode (deterministic, key-free) over the seeded mock corpus** — the numbers below
+> are the harness scoring the **verification battery** against a fixed corpus of canned
+> solutions with *known* seeded failures (ground truth in
+> `data/mock_solutions/manifest.json`). They measure which battery layer catches which
+> seeded failure class — **not** a real model's code quality. Reproduces byte-identically
+> with `codegen-eval run --mock` (re-render with `codegen-eval report results.json`).
+> **Real-model (Claude / AWS Bedrock) generation benchmark: TBD** (see the clearly-marked
+> section below).
+>
+> Environment for this run: `pip install -e ".[dev]"` (pytest, hypothesis, bandit 1.9.4,
+> ruff 0.15.20, mutmut). The `lint` layer's builtin insecure-pattern scanner is always on;
+> bandit/ruff are used when on `PATH`. **The catch-rate matrix is byte-identical whether or
+> not bandit/ruff are on `PATH`** — the builtin scanner alone catches every insecure-pattern
+> seed in this corpus, and the external tools only add corroborating finding IDs (e.g.
+> `bandit:B307`, `ruff:S307` for `eval`). All layers produced **zero false flags**.
 
-Catch-rate matrix (layer × failure class):
+**Catch-rate matrix (layer × failure class), caught / seeded** — reproduces with
+`codegen-eval run --mock`:
 
 | | wrong-logic | missed-edge-case | insecure-pattern | silent-type-error | performance-trap |
 |---|---|---|---|---|---|
-| unit | TBD | TBD | TBD | TBD | TBD |
-| props | TBD | TBD | TBD | TBD | TBD |
-| mutation | TBD | TBD | TBD | TBD | TBD |
-| lint | TBD | TBD | TBD | TBD | TBD |
-| llm_review | TBD | TBD | TBD | TBD | TBD |
+| unit | 3/3 (100%) | 4/4 (100%) | 4/4 (100%) | 2/2 (100%) | 1/1 (100%) |
+| props | 3/3 (100%) | 3/4 (75%) | 0/4 (0%) | 1/2 (50%) | 0/1 (0%) |
+| mutation | 0/3 (0%) | 0/4 (0%) | 0/4 (0%) | 0/2 (0%) | 0/1 (0%) |
+| lint | 0/3 (0%) | 0/4 (0%) | 4/4 (100%) | 0/2 (0%) | 0/1 (0%) |
+| llm_review | 0/3 (0%) | 0/4 (0%) | 0/4 (0%) | 0/2 (0%) | 0/1 (0%) |
 
-Cost per caught bug (per strategy):
+Seeded failures per strategy (mock ground truth — the designed gradient, `bare` → clean):
 
-| Strategy | Seeded bugs | Caught | Gen cost | $/caught bug |
+| Strategy | wrong-logic | missed-edge-case | insecure-pattern | silent-type-error | performance-trap | total |
+|---|---|---|---|---|---|---|
+| bare | 3 | 2 | 2 | 2 | 1 | 10 |
+| spec | 0 | 2 | 1 | 0 | 0 | 3 |
+| test-first | 0 | 0 | 1 | 0 | 0 | 1 |
+| self-review | 0 | 0 | 0 | 0 | 0 | 0 |
+
+False flags (a layer FAILing a clean solution): **0 / 26 for every layer** (unit, props,
+mutation, lint, llm_review).
+
+Cost per caught bug (per strategy, mock generation-cost estimate at temperature 0) —
+reproduces with `codegen-eval run --mock`:
+
+| Strategy | Seeded bugs | Caught (any layer) | Gen cost | $/caught bug |
 |---|---|---|---|---|
-| bare | TBD | TBD | TBD | TBD |
-| spec | TBD | TBD | TBD | TBD |
-| test-first | TBD | TBD | TBD | TBD |
-| self-review | TBD | TBD | TBD | TBD |
+| bare | 10 | 10 | $0.000778 | $0.000078 |
+| spec | 3 | 3 | $0.001345 | $0.000448 |
+| test-first | 1 | 1 | $0.001565 | $0.001565 |
+| self-review | 0 | 0 | $0.001942 | — |
+
+Every seeded bug in the corpus is caught by at least one layer (10/10, 3/3, 1/1); the
+`$/caught bug` climbs left-to-right because each cleaner strategy costs more to generate
+(more prompt context; `self-review` is two calls) while seeding fewer bugs to catch.
+
+### Real-model benchmark — TBD
+
+The tables above are **mock mode only**. Running `codegen-eval run --mode claude` (or
+`--mode bedrock`) against a real model — where the solutions are *generated*, not canned,
+and the seeded-failure ground truth is replaced by real code — has **not been run yet**.
+That is the benchmark that measures a real model's code quality per prompt strategy; the
+mock numbers only validate that the battery scores a *known* corpus correctly.
 
 ## Honest findings
 
-> **TBD — pending the first real benchmark run.** One structural observation is already
-> baked into the mock corpus by construction (and is the hypothesis to test for real):
-> functional verification cannot see security. The `test-first` mock solution for
-> `safe_calc` passes every shown test and still calls `eval()` on untrusted input — only
-> the lint layer flags it. Whether real models reproduce that pattern is exactly what the
-> benchmark will measure.
+**Mock mode (deterministic, key-free) over the seeded mock corpus** — reproduces with
+`codegen-eval run --mock`. These describe the **verification battery's** behavior on a
+fixed seeded corpus, not a real model's output. **Real-model findings: TBD.**
+
+- **`unit` is the workhorse — 100% across all five classes** (3/3, 4/4, 4/4, 2/2, 1/1).
+  The reason is that the unit battery runs *hidden* edge and timed-perf tests the model
+  never saw, so it catches even the seeded `insecure-pattern` and `performance-trap`
+  solutions. It is also the only layer that catches `performance-trap` (`has_duplicates`'s
+  O(n²) solution times out at 60k elements) and the only reliable catcher of
+  `silent-type-error` (2/2 vs props' 1/2).
+
+- **`lint` is the *only other* layer that catches `insecure-pattern`** (4/4; props /
+  mutation / llm_review all 0/4 on that class). If you delete the unit layer's adversarial
+  edge tests, lint is your only remaining defense against `eval` / `shell=True` / injection.
+
+- **The "functional tests can't see security" story is real but narrower than a one-liner.**
+  The `safe_calc` `test-first` solution regex-guards its input and then calls `eval()`. It
+  **passes all three *shown* functional tests** (`2 + 3 * 4`, `(1 + 2) / 2`, `-4 + 10`) —
+  a model graded only on the tests it was handed looks correct. What catches it is either
+  (a) the `lint` layer detecting `eval`, or (b) a *hidden adversarial* edge test the model
+  was **not** shown: `safe_calc('2 ** 8')` must be rejected (exponentiation isn't in the
+  allowed `+ - * /`), and the permissive `eval` returns `256.0` instead of raising, so the
+  hidden `unit` edge test fails too. Net: **the tests you *choose to show* the model can't
+  see the vulnerability; it takes a security linter or an adversarial test the model didn't
+  get to satisfy.** (So in this corpus insecure-pattern is caught by *both* unit and lint —
+  lint is not the sole catcher, contrary to a naive reading.)
+
+- **`props` overlaps `unit` on logic/edge/type but has real gaps** — 100% wrong-logic,
+  75% missed-edge, 50% silent-type, but **0%** on both insecure-pattern and
+  performance-trap. Property checks over random arithmetic inputs never exercise the
+  malicious-string or the 60k-element cases.
+
+- **`mutation` and `llm_review` caught nothing (0 across the board) — and that is honest,
+  not a bug.** `llm_review` is a stub, skipped in mock mode by design. `mutation` only
+  flags *fragile green passes* (a solution that passes its tests but whose tests kill few
+  mutants); no seeded solution in this corpus produced such a flagged run, and it raised
+  zero false flags. It earns its keep on *clean* solutions the other layers wave through,
+  which this seeded corpus doesn't contain — a real-model run is where it would bite.
 
 ## The tasks
 
@@ -125,7 +195,8 @@ arithmetic eval), `word_count`, `flatten`, `list_files` (untrusted path), `movin
 - [x] Battery: unit, props (seeded-RNG), mutation (built-in AST mutator), lint (builtin + bandit/ruff)
 - [x] Catch-rate matrix + false-flag rate + cost-per-caught-bug scoring
 - [x] CLI (`run --mock`, `report`), tests, CI (pytest + mock smoke run)
-- [ ] Real-model benchmark run (Claude API / Bedrock) → fill the results tables
+- [x] Mock-mode results recorded (deterministic catch-rate matrix + cost table above; 45 tests pass)
+- [ ] Real-model benchmark run (Claude API / Bedrock) → fill the *real-model* results section (mock results done; real-model pending)
 - [ ] `llm_review` layer: independent cross-model reviewer with structured per-class verdicts
 - [ ] hypothesis-native property strategies (current checks are seeded-RNG)
 - [ ] mutmut comparison run vs the built-in mutator
