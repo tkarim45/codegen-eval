@@ -82,8 +82,9 @@ codegen-eval run --mode claude
 > `data/mock_solutions/manifest.json`). They measure which battery layer catches which
 > seeded failure class — **not** a real model's code quality. Reproduces byte-identically
 > with `codegen-eval run --mock` (re-render with `codegen-eval report results.json`).
-> **Real-model (Claude / AWS Bedrock) generation benchmark: TBD** (see the clearly-marked
-> section below).
+> **Real-model (AWS Bedrock, Claude Haiku 4.5) generation benchmark: DONE** — see the
+> clearly-marked section below (40 real solutions; the battery flagged 4 true defects; the
+> mock's seeded `eval()` danger did not occur on the real model).
 >
 > Environment for this run: `pip install -e ".[dev]"` (pytest, hypothesis, bandit 1.9.4,
 > ruff 0.15.20, mutmut). The `lint` layer's builtin insecure-pattern scanner is always on;
@@ -129,19 +130,65 @@ Every seeded bug in the corpus is caught by at least one layer (10/10, 3/3, 1/1)
 `$/caught bug` climbs left-to-right because each cleaner strategy costs more to generate
 (more prompt context; `self-review` is two calls) while seeding fewer bugs to catch.
 
-### Real-model benchmark — TBD
+### Real-model benchmark — AWS Bedrock, Claude Haiku 4.5
 
-The tables above are **mock mode only**. Running `codegen-eval run --mode claude` (or
-`--mode bedrock`) against a real model — where the solutions are *generated*, not canned,
-and the seeded-failure ground truth is replaced by real code — has **not been run yet**.
-That is the benchmark that measures a real model's code quality per prompt strategy; the
-mock numbers only validate that the battery scores a *known* corpus correctly.
+> **Real model: AWS Bedrock, Claude Haiku 4.5** (`us.anthropic.claude-haiku-4-5-20251001-v1:0`,
+> region `us-east-1`), **temperature 0**. One run: **40 solutions** (10 tasks × 4 strategies),
+> **50 real Bedrock calls** (self-review is 2 calls/task), **19,963 real tokens**, **$0.0160**
+> total (repo's blended `$0.80/1M` approximation — *not* billing-grade). **0 generation errors,
+> 0 sandbox crashes.** Reproduces with (needs Bedrock creds in `.env`):
+>
+> ```bash
+> set -a; source .env; set +a
+> export AWS_REGION=us-east-1
+> export BEDROCK_SMALL_MODEL="us.anthropic.claude-haiku-4-5-20251001-v1:0"
+> pip install -e ".[dev,bedrock]"
+> codegen-eval run --mode bedrock
+> ```
+
+Unlike mock mode there is **no seeded ground truth** — the solutions are *generated*, so a
+battery `FAIL` is now the harness's real judgment that a solution is defective. (Because the
+scorecard has no seeded classes to attribute catches to in real mode, its printed catch-rate
+matrix is all `—` and its "false flags" counter is really the raw per-layer `FAIL` count; the
+numbers below are read from the per-solution verdicts.) **Every one of the 4 flags below was a
+true positive** — I read the generated code for each; none was a benign misfire.
+
+**Real code quality per prompt strategy** (how many of Haiku's 10 solutions the battery
+flagged as defective — *this is the real signal the mock could only simulate*):
+
+| Strategy | Solutions flagged | What was wrong | Gen cost (real tokens) |
+|---|---|---|---|
+| `bare` | **2 / 10** | `moving_average` returns `[]` for `window<=0` instead of raising `ValueError`; `slugify` emits `--` double-hyphens on punctuation+separator mixes | $0.002409 |
+| `spec` | **1 / 10** | `safe_calc` — see note (truncation artifact, not a reasoning bug) | $0.003149 |
+| `test-first` | **0 / 10** | clean — every shown-test solution passed the full battery | $0.003228 |
+| `self-review` | **1 / 10** | `moving_average` — the second pass rewrote the code (sliding-window sum) but **still** returns `[]` for `window<=0`; it did not fix its own spec violation | $0.007185 |
+
+**Which layer caught the real defects** (solutions flagged, out of 40):
+
+| Layer | Real FAILs | What it caught on real Haiku code |
+|---|---|---|
+| `unit` | **3 / 40** | `moving_average` (bare + self-review) `window<=0` edge test; `safe_calc` spec broken output |
+| `props` | **2 / 40** | `slugify` bare `--` bug (**invisible to the shown functional tests** — a seeded-RNG-only catch); `safe_calc` spec broken output |
+| `mutation` | 0 / 40 | no fragile-pass flags (18/40 had no mutation sites; the rest killed enough mutants) |
+| `lint` | 0 / 40 | **no insecure patterns to find** — see the `safe_calc` inversion below |
+| `llm_review` | 0 / 40 | stub, skipped (40/40) |
+
+**The `safe_calc` insecure-pattern story inverts on a real model.** The mock corpus *seeds*
+`eval()` into `safe_calc` (the "functional tests can't see security" set-piece). Real Haiku
+**never used `eval`/`exec`/shell in any of the 40 solutions** — for `safe_calc` it wrote a
+from-scratch recursive-descent arithmetic parser under *all four* strategies. So `lint` fired
+**zero** times: the seeded danger simply didn't occur. The real danger was elsewhere — under
+the `spec` strategy Haiku's (secure, verbose) parser **exceeded `max_tokens=1024` and was
+truncated mid-function**; with no closing code-fence, `extract_code` fell back to the raw reply
+(leading ` ```python ` fence included), producing unparseable code that `unit` + `props`
+correctly flagged as broken. That is honest real data: the failure was a *token-budget* limit
+on a legitimate secure solution, not a reasoning error and not an insecure pattern.
 
 ## Honest findings
 
 **Mock mode (deterministic, key-free) over the seeded mock corpus** — reproduces with
 `codegen-eval run --mock`. These describe the **verification battery's** behavior on a
-fixed seeded corpus, not a real model's output. **Real-model findings: TBD.**
+fixed seeded corpus, not a real model's output.
 
 - **`unit` is the workhorse — 100% across all five classes** (3/3, 4/4, 4/4, 2/2, 1/1).
   The reason is that the unit battery runs *hidden* edge and timed-perf tests the model
@@ -178,6 +225,40 @@ fixed seeded corpus, not a real model's output. **Real-model findings: TBD.**
   zero false flags. It earns its keep on *clean* solutions the other layers wave through,
   which this seeded corpus doesn't contain — a real-model run is where it would bite.
 
+**Real-model (AWS Bedrock, Claude Haiku 4.5, temp 0)** — reproduces with the command in the
+real-model results section. Now measuring a *real model's* code quality, not a seeded corpus:
+
+- **The prompt-strategy gradient is real, and showing the tests wins.** `test-first` produced
+  **0 defective solutions**; `bare` produced **2**. Handing the model the exact tests it must
+  pass is the single most effective prompt strategy for real code quality here — it eliminated
+  every defect the other strategies shipped.
+
+- **`self-review` is not a guaranteed fix — and here it wasn't one.** On `moving_average` the
+  review pass *rewrote* the code (bare → an efficient sliding-window sum) but **kept the same
+  `window<=0` spec violation** (returns `[]` instead of raising `ValueError`). It cost **~3×**
+  `bare` (2 calls, $0.0072 vs $0.0024) and did not catch its own missed edge case. Self-review
+  improved the algorithm and missed the requirement — exactly the failure the *external*
+  battery exists to catch.
+
+- **`props` earned its keep on a real bug the shown tests never saw.** `slugify` bare removes
+  punctuation *after* collapsing separator runs, so inputs mixing `.`/`!` with `-`/`_` collapse
+  to a single hyphen and *then* lose the punctuation between two hyphens — producing `--`. The
+  four shown functional tests all pass; only the seeded-RNG property (`'--' not in out`) hits
+  the offending input. The mock could only *simulate* a props-only catch; here it happened on a
+  real model.
+
+- **The mock's marquee `insecure-pattern` scenario did not occur.** Real Haiku wrote a safe
+  from-scratch parser for `safe_calc` under all four strategies — **no `eval`/`exec`/shell in
+  any of the 40 solutions** — so `lint` caught nothing. The seeded "AI still calls `eval()`"
+  story is a real *risk* the corpus stress-tests, but on this model/task the real failure mode
+  was a **truncated secure solution** (`max_tokens=1024` too small for the verbose parser),
+  correctly flagged by `unit`/`props` as broken code. Honest inversion: the harness caught a
+  real defect, just not the one the mock predicted.
+
+- **Real cost:** 40 solutions / 50 calls / 19,963 tokens / **$0.0160** total at temp 0.
+  `test-first` bought a clean sweep for $0.0032; `self-review` spent $0.0072 to ship one
+  uncaught bug. Cheapest reliable strategy on this benchmark = **show the tests**, not review.
+
 ## The tasks
 
 10 small, real coding tasks in `src/codegeneval/data/tasks/`, each with basic reference
@@ -196,7 +277,7 @@ arithmetic eval), `word_count`, `flatten`, `list_files` (untrusted path), `movin
 - [x] Catch-rate matrix + false-flag rate + cost-per-caught-bug scoring
 - [x] CLI (`run --mock`, `report`), tests, CI (pytest + mock smoke run)
 - [x] Mock-mode results recorded (deterministic catch-rate matrix + cost table above; 45 tests pass)
-- [ ] Real-model benchmark run (Claude API / Bedrock) → fill the *real-model* results section (mock results done; real-model pending)
+- [x] Real-model benchmark run (AWS Bedrock, Claude Haiku 4.5, temp 0) → real-model results section filled: 40 solutions, 4 true defects caught, insecure-pattern seed did not occur on the real model
 - [ ] `llm_review` layer: independent cross-model reviewer with structured per-class verdicts
 - [ ] hypothesis-native property strategies (current checks are seeded-RNG)
 - [ ] mutmut comparison run vs the built-in mutator

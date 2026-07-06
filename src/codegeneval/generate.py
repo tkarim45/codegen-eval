@@ -19,7 +19,14 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .config import API_MODEL, BEDROCK_MODEL, CALLS_PER_STRATEGY, COST_PER_1M, TEMPERATURE
+from .config import (
+    API_MODEL,
+    AWS_REGION,
+    BEDROCK_MODEL,
+    CALLS_PER_STRATEGY,
+    COST_PER_1M,
+    TEMPERATURE,
+)
 from .strategies import build_prompt, build_review_prompt, system_prompt
 from .tasks import Task
 
@@ -132,7 +139,9 @@ class BedrockGenerator(_AnthropicBase):
     def __init__(self, tier: str = "small"):
         import anthropic  # optional extra — imported lazily
 
-        self._client = anthropic.AnthropicBedrock()
+        # Pin the verified region (config.AWS_REGION) so the run doesn't depend on
+        # AWS_REGION being exported; env / .env still override via config.
+        self._client = anthropic.AnthropicBedrock(aws_region=AWS_REGION)
         self._model = BEDROCK_MODEL[tier]
         self._tier = tier
 

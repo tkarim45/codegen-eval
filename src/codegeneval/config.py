@@ -22,10 +22,12 @@ COST_PER_1M = {"small": 0.80, "large": 15.0}  # haiku-class vs opus-class
 # First-party Anthropic API model IDs (real mode).
 API_MODEL = {"small": "claude-haiku-4-5-20251001", "large": "claude-opus-4-6"}
 
-# AWS Bedrock inference-profile IDs (repo convention: "global." prefix).
-AWS_REGION = os.getenv("AWS_REGION", "us-west-2")
+# AWS Bedrock inference-profile IDs. The `small` (Haiku 4.5) tier default and region
+# below are the values VERIFIED against Bedrock for the recorded real-model benchmark
+# (see README). Override any of these via the matching env var / .env entry.
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 BEDROCK_MODEL = {
-    "small": os.getenv("BEDROCK_SMALL_MODEL", "global.anthropic.claude-haiku-4-5-20251001-v1:0"),
+    "small": os.getenv("BEDROCK_SMALL_MODEL", "us.anthropic.claude-haiku-4-5-20251001-v1:0"),
     "large": os.getenv("BEDROCK_LARGE_MODEL", "global.anthropic.claude-opus-4-6-v1"),
 }
 
