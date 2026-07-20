@@ -21,3 +21,6 @@ results.json
 .DS_Store
 .idea/
 .vscode/
+
+# Local notes, not published
+CLAUDE.md
