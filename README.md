@@ -68,7 +68,7 @@ codegen-eval report results.json     # re-render the scorecard
 codegen-eval run --mock --strategies bare self-review --layers unit lint
 codegen-eval run --mock --tasks safe_calc list_files
 
-# real models (optional extras; keys via .env — see .env.example)
+# real models (optional extras; keys via .env, see .env.example)
 pip install -e ".[claude]"    # ANTHROPIC_API_KEY
 pip install -e ".[bedrock]"   # AWS credentials
 codegen-eval run --mode claude
